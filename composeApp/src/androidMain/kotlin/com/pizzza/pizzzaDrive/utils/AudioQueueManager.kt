@@ -18,7 +18,7 @@ class AudioQueueManager(private val context: Context) {
     private var isLoaded = false
 
     init {
-        println("🍕 AudioQueueManager - Inicializando SoundPool...")
+        println("UI_TAG_DRIVER: AudioQueueManager - Inicializando SoundPool...")
         val attributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_NOTIFICATION)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -32,7 +32,7 @@ class AudioQueueManager(private val context: Context) {
         soundPool?.setOnLoadCompleteListener { _, _, status ->
             if (status == 0) {
                 isLoaded = true
-                println("🍕 AudioQueueManager - Archivo de audio cargado y listo.")
+                println("UI_TAG_DRIVER: AudioQueueManager - Archivo de audio cargado y listo.")
             } else {
                 println("⚠️ AudioQueueManager - Error al cargar audio (status $status)")
             }
@@ -48,7 +48,7 @@ class AudioQueueManager(private val context: Context) {
 
     fun enqueueAudio() {
         scope.launch {
-            println("🍕 AudioQueueManager - Intentando reproducir...")
+            println("UI_TAG_DRIVER: AudioQueueManager - Intentando reproducir...")
             
             // Esperar un poco si no ha terminado de cargar (solo la primera vez)
             var retry = 0
@@ -59,7 +59,7 @@ class AudioQueueManager(private val context: Context) {
 
             if (isLoaded && soundPool != null) {
                 soundPool?.play(soundId, 1f, 1f, 1, 0, 1f)
-                println("🍕 AudioQueueManager - ¡Reproduciendo ahora!")
+                println("UI_TAG_DRIVER: AudioQueueManager - ¡Reproduciendo ahora!")
             } else {
                 println("⚠️ AudioQueueManager - No se pudo reproducir (isLoaded=$isLoaded)")
             }

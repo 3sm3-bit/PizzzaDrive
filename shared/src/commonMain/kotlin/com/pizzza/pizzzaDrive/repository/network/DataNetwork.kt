@@ -18,8 +18,10 @@ class DataNetwork(
 
     override suspend fun updateOrder(data: ParentOrderModel): String = apiCall {
         if (!connectivityManager.isConnected()) throw ErrorNetwork()
-        println("DataNetwork: Actualizando pedido ${data.uid} a estado ${data.state}...")
+        println("UI_TAG_DRIVER: DataNetwork: Actualizando pedido ${data.uid} a estado ${data.state} en el servidor...")
         val response = apiService.updateParentOrder(data.toParentOrderRequest())
+        
+        println("UI_TAG_DRIVER: DataNetwork: Sincronizando actualización del pedido ${data.uid} en la DB local...")
         database.parentOrderDao().insertAll(listOf(data.toEntity()))
         response
     }
@@ -28,33 +30,39 @@ class DataNetwork(
         val dao = database.parentOrderDao()
         val localOrders = dao.getAll()
         
+        println("UI_TAG_DRIVER: DataNetwork: Iniciando carga de pedidos. forceRefresh=$forceRefresh, localCount=${localOrders.size}")
+
         if (localOrders.isNotEmpty() && !forceRefresh) {
-            val models = localOrders.toModelListFromDb()
-            if (models.any { it.orders.isEmpty() }) {
-                println("DataNetwork: Datos locales incompletos. Forzando refresco de red.")
-            } else {
-                return models
-            }
+            println("UI_TAG_DRIVER: DataNetwork: Cargando desde base de datos local...")
+            return localOrders.toModelListFromDb()
         }
 
         if (!connectivityManager.isConnected()) {
+            println("UI_TAG_DRIVER: DataNetwork: Sin conexión a internet.")
             if (localOrders.isNotEmpty()) {
+                println("UI_TAG_DRIVER: DataNetwork: Retornando datos locales por falta de conexión.")
                 return localOrders.toModelListFromDb()
             } else {
+                println("UI_TAG_DRIVER: DataNetwork: No hay datos locales ni conexión. Lanzando error.")
                 throw ErrorNetwork()
             }
         }
 
+        println("UI_TAG_DRIVER: DataNetwork: Solicitando pedidos actualizados al servidor...")
         return apiCall({
             apiService.getParentOrder()
         }) { response ->
+            println("UI_TAG_DRIVER: DataNetwork: Servidor respondió con ${response.size} pedidos. Actualizando DB local...")
             dao.deleteAll()
-            dao.insertAll(response.toEntityListFromResponse())
+            val entities = response.toEntityListFromResponse()
+            dao.insertAll(entities)
+            println("UI_TAG_DRIVER: DataNetwork: DB local actualizada correctamente con ${entities.size} registros.")
             response.loadParentOrder()
         }
     }
 
     override suspend fun logout() {
+        println("UI_TAG_DRIVER: DataNetwork: Cerrando sesión y limpiando datos locales...")
         database.userDao().logout()
     }
 }

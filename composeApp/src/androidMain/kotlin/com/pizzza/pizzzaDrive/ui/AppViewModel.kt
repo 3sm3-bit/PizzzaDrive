@@ -1,6 +1,5 @@
 package com.pizzza.pizzzaDrive.ui
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,38 +19,26 @@ class AppViewModel(
 
     fun getGeneralOrderList() {
         execute {
-            try {
-                val response = dataUseCase.loadParentOrder()
-                updateStateWithOrders(response)
-            } catch (e: Exception) {
-                Log.e("AppViewModel", "Error en getGeneralOrderList", e)
-                throw e
-            }
+            val response = dataUseCase.loadParentOrder()
+            updateStateWithOrders(response)
         }
     }
 
     fun refresh() {
         execute {
-            try {
-                val response = dataUseCase.loadParentOrder(forceRefresh = true)
-                updateStateWithOrders(response)
-            } catch (e: Exception) {
-                Log.e("AppViewModel", "Error en refresh", e)
-                throw e
-            }
+            val response = dataUseCase.loadParentOrder(forceRefresh = true)
+            updateStateWithOrders(response)
         }
     }
 
     private fun updateStateWithOrders(orders: List<ParentOrderModel>) {
-        // Filtrar solo pedidos Delivery en estados relevantes para el repartidor
-        val deliveryOrders = orders.filter { 
-            it.reception.trim().uppercase().contains("DELIVERY") &&
-            (it.state.trim().uppercase() == "ENVIADO" || 
-             it.state.trim().uppercase() == "INICIADO" || 
-             it.state.trim().uppercase() == "ENTREGADO")
+        // Ahora el servidor ya envía solo DELIVERY. Filtramos solo por estados relevantes.
+        val relevantOrders = orders.filter { 
+            val state = it.state.trim().uppercase()
+            state == "ENVIADO" || state == "INICIADO" || state == "ENTREGADO"
         }
 
-        val sortedOrders = deliveryOrders.sortedBy {
+        val sortedOrders = relevantOrders.sortedBy {
             when (it.state.trim().uppercase()) {
                 "ENVIADO" -> 1
                 "INICIADO" -> 2
@@ -75,7 +62,6 @@ class AppViewModel(
         if (order.state.trim().uppercase() == newState.uppercase()) return
         val previousState = uiState
 
-        // Actualización optimista: Cambiamos estado en la lista local inmediatamente
         val updatedOrders = uiState.orders.map { 
             if (it.uid == order.uid) it.copy(state = newState) else it 
         }
@@ -83,10 +69,11 @@ class AppViewModel(
 
         execute(loading = false) {
             try {
-                // Sincronizamos con DB y Servicios
                 dataUseCase.updateOrder(order.copy(state = newState))
+                
+                // Nota: El inicio del TrackingService se gestiona en MainActivity 
+                // observando el cambio de estado en uiState.orders
             } catch (e: Exception) {
-                // Si falla, revertimos al estado anterior
                 uiState = previousState
                 throw e
             }

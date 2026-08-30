@@ -29,6 +29,7 @@ open class BaseViewModel(private val dispatchers: DispatcherProvider): ViewModel
                     uiStateBase = uiStateBase.copy(loading = false)
                 }
             } catch (ex: Exception) {
+                android.util.Log.e("UI_TAG_DRIVER", "Error en execute: ${ex.message}", ex)
                 withContext(dispatchers.main) {
                     uiStateBase = uiStateBase.copy(error = true, errorType = ex, loading = false)
                 }

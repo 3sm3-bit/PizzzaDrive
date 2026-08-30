@@ -20,11 +20,11 @@ class ParentOrderResponse(
     @SerialName("date")
     val date: String? = "",
     @SerialName("state")
-    val state: String? = "",
+    val state: String? = "COMFIRMADO",
     @SerialName("address")
     val address: String? = "",
     @SerialName("reception")
-    val reception: String? = "",
+    val reception: String? = "RECOJO",
     @SerialName("symbol")
     val symbol: String? = "$",
     @SerialName("branchId")
@@ -39,6 +39,12 @@ class ParentOrderResponse(
     val userId: String? = "0",
     @SerialName("driverId")
     val driverId: String? = "0",
+    @SerialName("currentLatitude")
+    val currentLatitude: String? = "0",
+    @SerialName("currentLongitude")
+    val currentLongitude: String? = "0",
+    @SerialName("statePay")
+    val statePay: String? = "PENDIENTE",
     @SerialName("orders")
     val orders: List<OrderResponse>? = emptyList()
 )
@@ -51,9 +57,9 @@ fun List<ParentOrderResponse>.loadParentOrder() = this.map {
         price = it.price ?: "",
         phone = it.phone ?: "",
         date = it.date ?: "",
-        state = it.state ?: "",
+        state = it.state ?: "COMFIRMADO",
         address = it.address ?: "",
-        reception = it.reception ?: "",
+        reception = it.reception ?: "RECOJO",
         symbol = it.symbol ?: "$",
         branchId = it.branchId ?: "1",
         stage = it.stage ?: "1",
@@ -61,6 +67,9 @@ fun List<ParentOrderResponse>.loadParentOrder() = this.map {
         longitude = it.longitude ?: "0",
         userId = it.userId ?: "0",
         driverId = it.driverId ?: "0",
+        currentLatitude = it.currentLatitude ?: "0",
+        currentLongitude = it.currentLongitude ?: "0",
+        statePay = it.statePay ?: "PENDIENTE",
         orders = it.orders?.loadOrder() ?: emptyList()
     )
 }

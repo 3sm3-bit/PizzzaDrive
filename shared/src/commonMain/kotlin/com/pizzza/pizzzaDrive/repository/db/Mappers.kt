@@ -23,6 +23,9 @@ fun ParentOrderEntity.toModel() = ParentOrderModel(
     longitude = longitude,
     userId = userId,
     driverId = driverId,
+    currentLatitude = currentLatitude,
+    currentLongitude = currentLongitude,
+    statePay = statePay,
     orders = emptyList() // No orders stored in Entity for now
 )
 
@@ -42,7 +45,10 @@ fun ParentOrderModel.toEntity() = ParentOrderEntity(
     latitude = latitude,
     longitude = longitude,
     userId = userId,
-    driverId = driverId
+    driverId = driverId,
+    currentLatitude = currentLatitude,
+    currentLongitude = currentLongitude,
+    statePay = statePay
 )
 
 fun List<ParentOrderEntity>.toModelList() = map { it.toModel() }
@@ -55,16 +61,19 @@ fun List<ParentOrderResponse>.toEntityListFromResponse() = map {
         price = it.price ?: "",
         phone = it.phone ?: "",
         date = it.date ?: "",
-        state = it.state ?: "",
+        state = it.state ?: "COMFIRMADO",
         address = it.address ?: "",
-        reception = it.reception ?: "",
+        reception = it.reception ?: "RECOJO",
         symbol = it.symbol ?: "$",
         branchId = it.branchId ?: "1",
         stage = it.stage ?: "1",
         latitude = it.latitude ?: "0",
         longitude = it.longitude ?: "0",
         userId = it.userId ?: "0",
-        driverId = it.driverId ?: "0"
+        driverId = it.driverId ?: "0",
+        currentLatitude = it.currentLatitude ?: "0",
+        currentLongitude = it.currentLongitude ?: "0",
+        statePay = it.statePay ?: "PENDIENTE"
     )
 }
 

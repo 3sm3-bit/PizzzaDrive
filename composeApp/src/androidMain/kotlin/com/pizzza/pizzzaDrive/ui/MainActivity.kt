@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import android.content.Context
+import com.pizzza.pizzzaDrive.service.TrackingService
 
 class MainActivity : BaseActivity() {
 
@@ -37,6 +38,40 @@ class MainActivity : BaseActivity() {
 
         // 3. Iniciar la observación del Switch
         observeNotificationToggle()
+        
+        // 4. Observar cambios en el estado de las órdenes para el TrackingService
+        observeTrackingTrigger()
+    }
+
+    private fun observeTrackingTrigger() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                snapshotFlow { viewModel.uiState.orders.any { it.state.trim().uppercase() == "INICIADO" } }
+                    .collectLatest { hasActiveTracking ->
+                        if (hasActiveTracking) {
+                            println("UI_TAG_DRIVER: MainActivity: Hay órdenes en INICIADO. Arrancando TrackingService.")
+                            startTrackingService()
+                        } else {
+                            // El servicio se apaga solo si no hay órdenes, pero por seguridad lo intentamos aquí también
+                            stopTrackingService()
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun startTrackingService() {
+        val intent = Intent(this, TrackingService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
+    private fun stopTrackingService() {
+        val intent = Intent(this, TrackingService::class.java)
+        stopService(intent)
     }
 
     private fun observeNotificationToggle() {

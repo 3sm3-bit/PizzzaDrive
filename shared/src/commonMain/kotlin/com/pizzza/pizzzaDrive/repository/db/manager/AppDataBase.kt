@@ -11,7 +11,7 @@ import com.pizzza.pizzzaDrive.repository.db.entity.ParentOrderEntity
 import com.pizzza.pizzzaDrive.repository.db.entity.ProductEntity
 import com.pizzza.pizzzaDrive.repository.db.entity.UserEntity
 
-@Database(entities = [ParentOrderEntity::class, ProductEntity::class, UserEntity::class], version = 4)
+@Database(entities = [ParentOrderEntity::class, ProductEntity::class, UserEntity::class], version = 5)
 @ConstructedBy(AppDataBaseConstructor::class)
 abstract class AppDataBase : RoomDatabase() {
     abstract fun parentOrderDao(): ParentOrderDao

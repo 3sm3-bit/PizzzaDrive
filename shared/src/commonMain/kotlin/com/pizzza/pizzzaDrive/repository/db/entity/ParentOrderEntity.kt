@@ -20,5 +20,8 @@ data class ParentOrderEntity(
     val latitude: String,
     val longitude: String,
     val userId: String,
-    val driverId: String
+    val driverId: String,
+    val currentLatitude: String,
+    val currentLongitude: String,
+    val statePay: String
 )
