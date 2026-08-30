@@ -21,32 +21,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         application.registerForRemoteNotifications()
         
-        // Iniciar WebSocket y observar notificaciones
-        setupWebSocket()
-        
         return true
-    }
-    
-    private func setupWebSocket() {
-        // Conectar al socket (Sucursal 1)
-        KoinHelper.shared.getWebSocketManager().connect(branchId: "1")
-        
-        // Observar notificaciones que llegan del socket
-        KoinHelper.shared.observeNotifications { notification in
-            print("🍕 iOS AppDelegate: Notificación recibida -> \(notification.titulo)")
-            
-            // 1. Reproducir audio secuencial
-            AudioQueueManager.shared.enqueueAudio(resourceName: "new_order", extensionName: "mp3")
-            
-            // 2. Hablar el mensaje con VoiceManager
-            VoiceManager.shared.speak(text: notification.mensaje)
-            
-            // 3. Mostrar notificación local si la app está en segundo plano o para aviso visual
-            self.showLocalNotification(title: notification.titulo, body: notification.mensaje)
-            
-            // 4. Avisar al sistema para refrescar UI
-            NotificationCenter.default.post(name: NSNotification.Name("NewOrderReceived"), object: nil)
-        }
     }
     
     private func showLocalNotification(title: String, body: String) {

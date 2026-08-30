@@ -35,6 +35,11 @@ kotlin {
             // Icons
             implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
+            // Google Maps
+            implementation(libs.google.maps.compose)
+            implementation(libs.play.services.maps)
+            implementation(libs.play.services.location)
+
             // Custom Library
             implementation(libs.tay.compose.library)
         }
@@ -61,11 +66,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.tayler.pizzzaapp"
+    namespace = "com.pizzza.pizzzaDrive"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.tayler.pizzzaapp"
+        applicationId = "com.pizzza.pizzzaDrive"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -75,9 +80,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("../pizzza-app-key.jks")
-            storePassword = "pizzza123"
-            keyAlias = "pizzza-alias"
-            keyPassword = "pizzza123"
+            storePassword = "pizzzaDrive123"
+            keyAlias = "pizzzaDrive-alias"
+            keyPassword = "pizzzaDrive123"
         }
     }
 
@@ -108,7 +113,7 @@ android {
     applicationVariants.all {
         outputs.all {
             val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            output.outputFileName = "pizzeria.apk"
+            output.outputFileName = "pizzeriaDrive-${name}.apk"
         }
     }
 }

@@ -11,7 +11,7 @@ plugins {
 }
 
 buildConfig {
-    packageName.set("com.tayler.pizzzaapp.shared")
+    packageName.set("com.pizzza.pizzzaDrive")
     
     // Detectar si es Debug en Android o iOS (Xcode pasa la variable CONFIGURATION)
     val isIosDebug = System.getenv("CONFIGURATION") == "Debug"
@@ -54,7 +54,6 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.websockets)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
@@ -82,7 +81,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.tayler.pizzzaapp.shared"
+    namespace = "com.pizzza.pizzzaDrive.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
