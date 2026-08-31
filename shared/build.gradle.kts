@@ -11,7 +11,7 @@ plugins {
 }
 
 buildConfig {
-    packageName.set("com.pizzza.pizzzaDrive")
+    packageName.set("com.pizzza.pizzzaDrive.shared")
     
     // Detectar si es Debug en Android o iOS (Xcode pasa la variable CONFIGURATION)
     val isIosDebug = System.getenv("CONFIGURATION") == "Debug"

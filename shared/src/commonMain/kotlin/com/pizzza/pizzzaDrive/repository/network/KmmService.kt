@@ -7,7 +7,7 @@ import com.pizzza.pizzzaDrive.repository.network.model.BranchResponse
 import com.pizzza.pizzzaDrive.repository.network.model.UserResponse
 import com.pizzza.pizzzaDrive.repository.network.model.LoginRequest
 import com.pizzza.pizzzaDrive.repository.network.model.LoginResponse
-import com.pizzza.pizzzaDrive.BuildConfig
+import com.pizzza.pizzzaDrive.shared.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get

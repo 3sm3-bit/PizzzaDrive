@@ -79,7 +79,7 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("../pizzza-app-key.jks")
+            storeFile = file("../pizzza-drive-key.jks")
             storePassword = "pizzzaDrive123"
             keyAlias = "pizzzaDrive-alias"
             keyPassword = "pizzzaDrive123"

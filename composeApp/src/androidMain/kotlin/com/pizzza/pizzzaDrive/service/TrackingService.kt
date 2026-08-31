@@ -5,6 +5,7 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
@@ -38,7 +39,16 @@ class TrackingService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         println("UI_TAG_DRIVER: TrackingService: onStartCommand recibido.")
-        startForeground(NOTIFICATION_ID, createNotification("Iniciando rastreo de entrega..."))
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                NOTIFICATION_ID, 
+                createNotification("Iniciando rastreo de entrega..."),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, createNotification("Iniciando rastreo de entrega..."))
+        }
         
         if (trackingJob?.isActive != true) {
             startTrackingLoop()
