@@ -15,6 +15,7 @@ import com.pizzza.pizzzaDrive.R
 import com.pizzza.pizzzaDrive.usecases.DataUseCase
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
+import kotlin.time.Duration.Companion.milliseconds
 
 class TrackingService : Service() {
 
@@ -51,7 +52,6 @@ class TrackingService : Service() {
         trackingJob = serviceScope.launch {
             while (isActive) {
                 try {
-                    // 1. Obtener órdenes en estado INICIADO de la DB Local (forceRefresh = false)
                     val activeOrders = dataUseCase.loadParentOrder(forceRefresh = false)
                         .filter { it.state.trim().uppercase() == "INICIADO" }
 
@@ -71,7 +71,7 @@ class TrackingService : Service() {
                         val distance = if (lastLocation != null) calculateDistance(lastLocation!!, currentLocation) else Float.MAX_VALUE
                         println("UI_TAG_DRIVER: TrackingService: Ubicación obtenida (${currentLocation.latitude}, ${currentLocation.longitude}). Distancia desde último punto: ${distance}m")
 
-                        if (distance >= 20) {
+                        if (distance >= 10) {
                             println("UI_TAG_DRIVER: TrackingService: Umbral de 20m superado. Sincronizando con el servidor...")
                             
                             activeOrders.forEach { order ->
@@ -99,7 +99,7 @@ class TrackingService : Service() {
                 }
 
                 // 3. Esperar 2 minutos
-                delay(120_000)
+                delay(60_000.milliseconds)
             }
         }
     }
