@@ -30,6 +30,12 @@ class DataNetwork(
             apiService.getParentOrder()
         }) { response ->
             println("UI_TAG_DRIVER: DataNetwork: Servidor respondió con ${response.size} pedidos.")
+            response.forEach { parent ->
+                println("UI_TAG_DRIVER: Pedido ${parent.uid}: Cliente=${parent.nameClient}, Productos=${parent.orders?.size ?: 0}")
+                parent.orders?.forEach { order ->
+                    println("UI_TAG_DRIVER:   -> Producto: ${order.nameProduct}, Cantidad: ${order.quantity}")
+                }
+            }
             response.loadParentOrder()
         }
     }

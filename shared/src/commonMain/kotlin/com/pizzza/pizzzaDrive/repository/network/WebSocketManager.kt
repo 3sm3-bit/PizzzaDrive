@@ -12,18 +12,23 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
-private data class SocketIdentify(
+data class SocketIdentify(
     val type: String = "IDENTIFY",
     val role: String = "DRIVER",
     val driverId: String = "1"
 )
 
 @Serializable
-private data class SocketMessage(
+data class SocketMessage(
     val type: String? = null,
     val status: String? = null,
     val message: String? = null
 )
+
+private val jsonWorker = Json { 
+    ignoreUnknownKeys = true 
+    encodeDefaults = true 
+}
 
 class WebSocketManager(private val client: HttpClient) {
     private val _refreshOrders = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
@@ -49,6 +54,7 @@ class WebSocketManager(private val client: HttpClient) {
                         .removeSuffix("/")
 
                     println("UI_TAG_DRIVER: WebSocket: Intentando conectar a $cleanHost (Secure: $isSecure)")
+                    println("UI_TAG_DRIVER: WebSocket: URL completa base: $hostUrl")
 
                     client.webSocket(
                         method = io.ktor.http.HttpMethod.Get,
@@ -57,44 +63,61 @@ class WebSocketManager(private val client: HttpClient) {
                         request = {
                             if (isSecure) {
                                 url.protocol = io.ktor.http.URLProtocol.WSS
+                                println("UI_TAG_DRIVER: WebSocket: Usando protocolo WSS")
                             } else {
                                 url.protocol = io.ktor.http.URLProtocol.WS
+                                println("UI_TAG_DRIVER: WebSocket: Usando protocolo WS")
                             }
                             header("ngrok-skip-browser-warning", "true")
                         }
                     ) {
-                        println("UI_TAG_DRIVER: WebSocket: Conectado exitosamente.")
+                        println("UI_TAG_DRIVER: WebSocket: Conexión establecida con el servidor.")
                         
                         // 1. Enviar IDENTIFY
                         val identify = SocketIdentify()
-                        val identifyJson = Json.encodeToString(identify)
-                        send(Frame.Text(identifyJson))
-                        println("UI_TAG_DRIVER: WebSocket: Identificación enviada: $identifyJson")
+                        val identifyJson = jsonWorker.encodeToString(identify)
+                        try {
+                            send(Frame.Text(identifyJson))
+                            println("UI_TAG_DRIVER: WebSocket: Identificación enviada: $identifyJson")
+                        } catch (e: Exception) {
+                            println("UI_TAG_DRIVER: WebSocket: Error al enviar identificación: ${e.message}")
+                        }
 
                         // 2. Escuchar mensajes
-                        for (frame in incoming) {
-                            if (frame is Frame.Text) {
-                                val text = frame.readText()
-                                println("UI_TAG_DRIVER: WebSocket: Mensaje recibido: $text")
-                                
-                                try {
-                                    val msg = Json { ignoreUnknownKeys = true }.decodeFromString<SocketMessage>(text)
+                        try {
+                            for (frame in incoming) {
+                                if (frame is Frame.Text) {
+                                    val text = frame.readText()
+                                    println("UI_TAG_DRIVER: WebSocket: Mensaje recibido: $text")
                                     
-                                    if (msg.type == "REFRESH_DRIVER_ORDERS") {
-                                        println("UI_TAG_DRIVER: WebSocket: ¡Señal de refresco detectada!")
-                                        _refreshOrders.tryEmit(Unit)
-                                    } else if (msg.status == "OK") {
-                                        println("UI_TAG_DRIVER: WebSocket: Servidor confirmó identificación: ${msg.message}")
+                                    try {
+                                        val msg = jsonWorker.decodeFromString<SocketMessage>(text)
+                                        
+                                        if (msg.type == "REFRESH_DRIVER_ORDERS") {
+                                            println("UI_TAG_DRIVER: WebSocket: ¡Señal de refresco detectada!")
+                                            _refreshOrders.tryEmit(Unit)
+                                        } else if (msg.status == "OK") {
+                                            println("UI_TAG_DRIVER: WebSocket: Servidor confirmó identificación: ${msg.message}")
+                                        } else {
+                                            println("UI_TAG_DRIVER: WebSocket: Mensaje no reconocido o sin acción: ${msg.type}")
+                                        }
+                                    } catch (e: Exception) {
+                                        println("UI_TAG_DRIVER: WebSocket: Error al parsear JSON del mensaje: ${e.message}")
                                     }
-                                } catch (e: Exception) {
-                                    println("UI_TAG_DRIVER: WebSocket: Error al procesar mensaje: ${e.message}")
+                                } else {
+                                    println("UI_TAG_DRIVER: WebSocket: Recibido frame de tipo no texto: ${frame::class.simpleName}")
                                 }
                             }
+                        } catch (e: Exception) {
+                            println("UI_TAG_DRIVER: WebSocket: Error durante la escucha de mensajes: ${e.message}")
                         }
+                        println("UI_TAG_DRIVER: WebSocket: La sesión de WebSocket se ha cerrado.")
                     }
                 } catch (e: Exception) {
                     if (e is CancellationException) throw e
-                    println("UI_TAG_DRIVER: WebSocket: Error en la conexión: ${e.message}. Reintentando en 5s...")
+                    println("UI_TAG_DRIVER: WebSocket: Fallo crítico en el bucle de conexión: ${e.message}")
+                    println("UI_TAG_DRIVER: WebSocket: Causa: ${e.cause?.message}")
+                    println("UI_TAG_DRIVER: WebSocket: Reintentando en 5s...")
                 }
                 delay(5000)
             }

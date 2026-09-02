@@ -61,6 +61,7 @@ class MainActivity : BaseActivity() {
     }
 
     override fun setDataGlobal() {
+        println("UI_TAG_DRIVER: MainActivity: Iniciando setDataGlobal")
         // 1. Cargar el estado guardado y aplicarlo al ViewModel sin disparar efectos aún
         val isEnabled = prefs.getBoolean("notifications_enabled", false)
         viewModel.setNotificationsEnabled(isEnabled)
@@ -72,6 +73,7 @@ class MainActivity : BaseActivity() {
         observeTrackingTrigger()
 
         // 5. Iniciar WebSocket para refresco automático
+        println("UI_TAG_DRIVER: MainActivity: Llamando a webSocketManager.connect()")
         observeWebSocket()
         webSocketManager.connect()
     }

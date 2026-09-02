@@ -32,10 +32,11 @@ class AppViewModel(
     }
 
     private fun updateStateWithOrders(orders: List<ParentOrderModel>) {
-        // Ahora el servidor ya envía solo DELIVERY. Filtramos solo por estados relevantes.
         val relevantOrders = orders.filter { 
             val state = it.state.trim().uppercase()
-            state == "ENVIADO" || state == "INICIADO" || state == "ENTREGADO"
+            val isDelivery = it.reception.trim().uppercase().contains("DELIVERY")
+            
+            isDelivery && (state == "ENVIADO" || state == "INICIADO" || state == "ENTREGADO")
         }
 
         val sortedOrders = relevantOrders.sortedBy {
@@ -47,15 +48,30 @@ class AppViewModel(
             }
         }
 
-        val countEnviado = sortedOrders.count { it.state.trim().uppercase() == "ENVIADO" }
-        val countEntregado = sortedOrders.count { it.state.trim().uppercase() == "ENTREGADO" }
+        val countEnviado = relevantOrders.count { 
+            val s = it.state.trim().uppercase()
+            s == "ENVIADO" || s == "INICIADO" 
+        }
+        val countEntregado = relevantOrders.count { it.state.trim().uppercase() == "ENTREGADO" }
 
         uiState = uiState.copy(
             orders = sortedOrders,
-            filteredOrders = sortedOrders,
             countEnviado = countEnviado,
-            countEntregado = countEntregado
+            countEntregado = countEntregado,
+            filteredOrders = sortedOrders // Mostrar todo por defecto
         )
+    }
+
+    fun filterOrdersByState(tab: String) {
+        val filtered = uiState.orders.filter { 
+            val state = it.state.trim().uppercase()
+            if (tab == "ENVIADO") {
+                state == "ENVIADO" || state == "INICIADO"
+            } else {
+                state == "ENTREGADO"
+            }
+        }
+        uiState = uiState.copy(filteredOrders = filtered)
     }
 
     fun updateOrderState(order: ParentOrderModel, newState: String) {

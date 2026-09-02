@@ -86,6 +86,17 @@ val networkModule = module {
     }
 
     single { KmmService(get(named("httpClient"))) }
-    single { WebSocketManager(get(named("httpClient"))) }
+    
+    single(named("webSocketClient")) {
+        HttpClient {
+            install(WebSockets)
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
+            // No instalamos Logging aquí para evitar conflictos con WebSockets
+        }
+    }
+
+    single { WebSocketManager(get(named("webSocketClient"))) }
 }
 
