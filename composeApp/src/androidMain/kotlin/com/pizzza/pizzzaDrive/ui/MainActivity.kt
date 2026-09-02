@@ -10,6 +10,7 @@ import com.pizzza.pizzzaDrive.component.AppNavigation
 import com.pizzza.pizzzaDrive.ui.base.BaseActivity
 import com.pizzza.pizzzaDrive.ui.base.BaseViewModel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -22,10 +23,12 @@ import androidx.core.content.ContextCompat
 import com.pizzza.pizzzaDrive.service.TrackingService
 import android.Manifest
 import com.pizzza.pizzzaDrive.model.ParentOrderModel
+import com.pizzza.pizzzaDrive.repository.network.WebSocketManager
 
 class MainActivity : BaseActivity() {
 
     private val viewModel : AppViewModel by viewModel()
+    private val webSocketManager: WebSocketManager by inject()
 
     private val prefs by lazy { getSharedPreferences("pizza_prefs", Context.MODE_PRIVATE) }
 
@@ -67,12 +70,28 @@ class MainActivity : BaseActivity() {
         
         // 4. Observar cambios en el estado de las órdenes para el TrackingService
         observeTrackingTrigger()
+
+        // 5. Iniciar WebSocket para refresco automático
+        observeWebSocket()
+        webSocketManager.connect()
+    }
+
+    private fun observeWebSocket() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                webSocketManager.refreshOrders.collectLatest {
+                    println("UI_TAG_DRIVER: MainActivity: Señal de WebSocket recibida. Refrescando lista...")
+                    viewModel.refresh()
+                }
+            }
+        }
     }
 
     private fun observeTrackingTrigger() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 snapshotFlow { viewModel.uiState.orders.any { it.isReadyForTracking() } }
+                    .distinctUntilChanged()
                     .collectLatest { hasActiveTracking ->
                         if (hasActiveTracking) {
                             checkPermissionsAndStartService()
@@ -138,4 +157,9 @@ class MainActivity : BaseActivity() {
     override fun getViewModels(): List<BaseViewModel> = listOf(
         viewModel
     )
+
+    override fun onDestroy() {
+        webSocketManager.close()
+        super.onDestroy()
+    }
 }

@@ -30,6 +30,8 @@ class TrackingService : Service() {
     private val CHANNEL_ID = "tracking_service_channel"
     private val NOTIFICATION_ID = 1001
 
+    private var isForeground = false
+
     override fun onCreate() {
         super.onCreate()
         println("UI_TAG_DRIVER: TrackingService: Servicio creado.")
@@ -40,14 +42,18 @@ class TrackingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         println("UI_TAG_DRIVER: TrackingService: onStartCommand recibido.")
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NOTIFICATION_ID, 
-                createNotification("Iniciando rastreo de entrega..."),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-            )
-        } else {
-            startForeground(NOTIFICATION_ID, createNotification("Iniciando rastreo de entrega..."))
+        if (!isForeground) {
+            val notification = createNotification("Iniciando rastreo de entrega...")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID, 
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+            isForeground = true
         }
         
         if (trackingJob?.isActive != true) {
@@ -70,6 +76,7 @@ class TrackingService : Service() {
                     if (activeOrders.isEmpty()) {
                         println("UI_TAG_DRIVER: TrackingService: No se detectaron órdenes activas. Deteniendo servicio automáticamente.")
                         stopForeground(true)
+                        isForeground = false
                         stopSelf()
                         break
                     }
@@ -173,6 +180,7 @@ class TrackingService : Service() {
 
     override fun onDestroy() {
         println("UI_TAG_DRIVER: TrackingService: Servicio destruido.")
+        isForeground = false
         serviceScope.cancel()
         super.onDestroy()
     }

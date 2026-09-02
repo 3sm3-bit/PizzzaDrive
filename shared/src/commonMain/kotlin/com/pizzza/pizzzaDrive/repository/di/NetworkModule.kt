@@ -1,12 +1,11 @@
 package com.pizzza.pizzzaDrive.repository.di
 
-import androidx.room.RoomDatabase
-import com.pizzza.pizzzaDrive.repository.db.manager.AppDataBase
 import com.pizzza.pizzzaDrive.repository.network.exception.CompleteErrorModel
 import com.pizzza.pizzzaDrive.repository.network.exception.UiTayApiException
 import com.pizzza.pizzzaDrive.repository.network.exception.UnAuthorizedException
 import com.pizzza.pizzzaDrive.repository.network.manager.InstantSerializer
 import com.pizzza.pizzzaDrive.repository.network.KmmService
+import com.pizzza.pizzzaDrive.repository.network.WebSocketManager
 import com.pizzza.pizzzaDrive.requestLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpResponseValidator
@@ -15,6 +14,7 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
@@ -31,6 +31,7 @@ val networkModule = module {
     // Cliente para peticiones REST (con ContentNegotiation y validación)
     single(named("httpClient")) {
         HttpClient {
+            install(WebSockets)
             install(ContentNegotiation) {
                 json(
                     Json {
@@ -85,10 +86,6 @@ val networkModule = module {
     }
 
     single { KmmService(get(named("httpClient"))) }
+    single { WebSocketManager(get(named("httpClient"))) }
 }
 
-fun getDatabaseBuilder(): RoomDatabase.Builder<AppDataBase> {
-    // Esta función debe ser implementada en cada plataforma (expect/actual)
-    // O usar un factory de Koin que ya esté configurado.
-    throw Exception("Use platform specific builder")
-}
