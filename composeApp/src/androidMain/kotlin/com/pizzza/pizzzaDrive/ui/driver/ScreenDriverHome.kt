@@ -302,7 +302,7 @@ fun OrderCard(
                         modifier = Modifier.weight(1f)
                     )
 
-                    if (isDelivery) {
+                    if (isDelivery && order.state.trim().uppercase() != "INICIADO") {
                         IconButton(
                             onClick = {
                                 openMap(
@@ -502,8 +502,20 @@ fun OrderCard(
                     }
 
                     if (actionButtonText != null) {
+                        val context = LocalContext.current
                         Button(
-                            onClick = { onStateChange("AVANZAR") },
+                            onClick = { 
+                                onStateChange("AVANZAR")
+                                if (actionButtonText == "INICIAR" || actionButtonText == "ENVIADO") {
+                                    openMap(
+                                        context,
+                                        order.latitude,
+                                        order.longitude,
+                                        order.currentLatitude,
+                                        order.currentLongitude
+                                    )
+                                }
+                            },
                             modifier = Modifier.weight(1f).height(36.dp),
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -573,7 +585,7 @@ fun OrderDetailSheet(
                     modifier = Modifier.weight(1f)
                 )
                 
-                if (isDelivery && order.latitude.isNotBlank() && order.longitude.isNotBlank()) {
+                if (isDelivery && order.state.trim().uppercase() != "INICIADO" && order.latitude.isNotBlank() && order.longitude.isNotBlank()) {
                     Button(
                         onClick = {
                             openMap(
