@@ -62,18 +62,6 @@ class AppViewModel(
         )
     }
 
-    fun filterOrdersByState(tab: String) {
-        val filtered = uiState.orders.filter { 
-            val state = it.state.trim().uppercase()
-            if (tab == "ENVIADO") {
-                state == "ENVIADO" || state == "INICIADO"
-            } else {
-                state == "ENTREGADO"
-            }
-        }
-        uiState = uiState.copy(filteredOrders = filtered)
-    }
-
     fun updateOrderState(order: ParentOrderModel, newState: String) {
         if (order.state.trim().uppercase() == newState.uppercase()) return
         val previousState = uiState

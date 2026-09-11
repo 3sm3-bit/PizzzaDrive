@@ -23,6 +23,7 @@ data class ParentOrderModel(
     val currentLatitude: String,
     val currentLongitude: String,
     val statePay: String,
+    val canal: String,
     val orders: List<OrderModel>
 ) {
     fun toParentOrderRequest() =
@@ -46,6 +47,7 @@ data class ParentOrderModel(
             currentLatitude = currentLatitude,
             currentLongitude = currentLongitude,
             statePay = statePay,
+            canal = canal,
             orders = emptyList()
         )
 }

@@ -13,17 +13,46 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pizzza.pizzzaDrive.model.ParentOrderModel
 import com.pizzza.pizzzaDrive.ui.AppViewModel
 import com.valu.uitaycompose.utils.*
+import android.content.Intent
+import android.net.Uri
+
+private fun openMap(
+    context: android.content.Context,
+    destLat: String,
+    destLng: String,
+    originLat: String = "",
+    originLng: String = ""
+) {
+    if (destLat.isNotBlank() && destLng.isNotBlank() && destLat != "0" && destLng != "0") {
+        val originParam = if (originLat.isNotBlank() && originLng.isNotBlank() && originLat != "0" && originLat != "0.0") {
+            "&origin=$originLat,$originLng"
+        } else ""
+
+        val uriString = "https://www.google.com/maps/dir/?api=1&destination=$destLat,$destLng$originParam"
+
+        try {
+            val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString))
+            mapIntent.setPackage("com.google.android.apps.maps")
+            context.startActivity(mapIntent)
+        } catch (e: Exception) {
+            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString))
+            context.startActivity(webIntent)
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -262,6 +291,9 @@ fun OrderCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val context = LocalContext.current
+                    val isDelivery = order.reception.trim().uppercase().contains("DELIVERY")
+
                     Text(
                         text = order.nameClient,
                         style = textB16,
@@ -269,6 +301,30 @@ fun OrderCard(
                         maxLines = 1,
                         modifier = Modifier.weight(1f)
                     )
+
+                    if (isDelivery) {
+                        IconButton(
+                            onClick = {
+                                openMap(
+                                    context,
+                                    order.latitude,
+                                    order.longitude,
+                                    order.currentLatitude,
+                                    order.currentLongitude
+                                )
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Map,
+                                contentDescription = "Ver en mapa",
+                                tint = Color(0xFF007BFF),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
                     Surface(
                         color = statusColor.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(4.dp)
@@ -301,12 +357,35 @@ fun OrderCard(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "${item.quantity} ${item.nameProduct} ${item.typeDough}",
-                                    fontSize = 14.sp,
-                                    color = textColor,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${item.quantity} ${item.nameProduct}",
+                                        fontSize = 14.sp,
+                                        style = textB16,
+                                        color = textColor,
+                                        modifier = Modifier.weight(1f, fill = false),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    
+                                    val attributes = mutableListOf<String>()
+                                    if (item.tamanio.isNotBlank() && item.tamanio.uppercase() != "NULL") attributes.add(item.tamanio)
+                                    if (item.typeDough.isNotBlank() && item.typeDough.uppercase() != "NULL") attributes.add(item.typeDough)
+                                    
+                                    if (attributes.isNotEmpty()) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "(${attributes.joinToString(" - ")})",
+                                            fontSize = 9.sp,
+                                            style = textS12,
+                                            color = Color(0xFF8A8D91),
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
                                 val priceValue = item.price.toDoubleOrNull() ?: 0.0
                                 val qtyValue = item.quantity.toDoubleOrNull() ?: 1.0
                                 val subtotal = qtyValue * priceValue
@@ -356,12 +435,16 @@ fun OrderCard(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         val isDelivery = order.reception.trim().uppercase().contains("DELIVERY")
-                        Text(
-                            text = if (isDelivery) "🏠 DELIVERY" else "🛍️ RECOJO EN LOCAL",
-                            style = textB12,
-                            fontSize = 11.sp,
-                            color = if (isDelivery) Color(0xFFE91E63) else Color(0xFF007BFF)
-                        )
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (isDelivery) "🏠 DELIVERY" else "🛍️ RECOJO EN LOCAL",
+                                style = textB12,
+                                fontSize = 11.sp,
+                                color = if (isDelivery) Color(0xFFE91E63) else Color(0xFF007BFF)
+                            )
+                        }
+                        
                         if (isDelivery && order.address.isNotBlank() && order.address.lowercase() != "null") {
                             Text(
                                 text = order.address,
@@ -473,6 +556,8 @@ fun OrderDetailSheet(
             )
             
             val isDelivery = order.reception.trim().uppercase().contains("DELIVERY")
+            val context = LocalContext.current
+            
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
                 Icon(
                     imageVector = if (isDelivery) Icons.Default.Home else Icons.Default.ShoppingCart,
@@ -484,8 +569,36 @@ fun OrderDetailSheet(
                 Text(
                     text = if (isDelivery) "Envío a: ${order.address}" else "Recojo en local",
                     style = textS14,
-                    color = Color(0xFF65676B)
+                    color = Color(0xFF65676B),
+                    modifier = Modifier.weight(1f)
                 )
+                
+                if (isDelivery && order.latitude.isNotBlank() && order.longitude.isNotBlank()) {
+                    Button(
+                        onClick = {
+                            openMap(
+                                context,
+                                order.latitude,
+                                order.longitude,
+                                order.currentLatitude,
+                                order.currentLongitude
+                            )
+                        },
+                        modifier = Modifier.height(32.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF)),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Map,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Mapa", fontSize = 12.sp, style = textB12)
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -517,26 +630,57 @@ fun OrderDetailSheet(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = item.nameProduct, style = textB16, color = Color(0xFF1C1E21))
-                                Text(
-                                    text = "${item.tamanio} • ${item.typeDough}",
-                                    style = textS12,
-                                    color = Color(0xFF65676B)
-                                )
+                                val attributes = mutableListOf<String>()
+                                if (item.tamanio.isNotBlank() && item.tamanio.uppercase() != "NULL") attributes.add(item.tamanio)
+                                if (item.typeDough.isNotBlank() && item.typeDough.uppercase() != "NULL") attributes.add(item.typeDough)
+                                
+                                if (attributes.isNotEmpty()) {
+                                    Text(
+                                        text = attributes.joinToString(" - "),
+                                        style = textS12,
+                                        color = Color(0xFF65676B)
+                                    )
+                                }
                                 if (item.cheeseFilledCrust.trim().uppercase() == "SI") {
                                     Text(
-                                        text = "🧀 Con orilla de queso",
+                                        text = "🧀 Con orilla de queso (+$${item.priceChosse})",
                                         style = textB10,
                                         color = Color(0xFF10B981),
                                         modifier = Modifier.padding(top = 2.dp)
                                     )
                                 }
+                                if (item.note.isNotBlank()) {
+                                    Surface(
+                                        color = Color(0xFFF59E0B).copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(4.dp),
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = "Nota: ${item.note}",
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize = 11.sp,
+                                            style = textB12,
+                                            color = Color(0xFFF59E0B)
+                                        )
+                                    }
+                                }
                             }
 
-                            Text(
-                                text = "$${(item.price.toDoubleOrNull() ?: 0.0).toInt()}",
-                                style = textB16,
-                                color = Color(0xFF1C1E21)
-                            )
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "Unit: $${(item.price.toDoubleOrNull() ?: 0.0).toInt()}",
+                                    style = textS12,
+                                    color = Color(0xFF65676B)
+                                )
+                                val priceValue = item.price.toDoubleOrNull() ?: 0.0
+                                val qtyValue = item.quantity.toDoubleOrNull() ?: 1.0
+                                val subtotal = qtyValue * priceValue
+                                Text(
+                                    text = "$${subtotal.toInt()}",
+                                    style = textB16,
+                                    color = Color(0xFF1C1E21)
+                                )
+                            }
                         }
                     }
                 }

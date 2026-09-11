@@ -29,5 +29,6 @@ data class OrderModel (
     val longitude : String,
     val currentLatitude : String,
     val currentLongitude : String,
-    val statePay : String
+    val statePay : String,
+    val canal : String
 )
