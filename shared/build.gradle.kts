@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
     alias(libs.plugins.buildConfig)
     alias(libs.plugins.kotlinx.serialization)
 }
@@ -56,6 +58,8 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.kotlinx.datetime)
             implementation(libs.datastore.preferences)
+            implementation(libs.room.runtime)
+            implementation(libs.sqlite.bundled)
         }
         
         commonTest.dependencies {
@@ -92,5 +96,13 @@ android {
 }
 
 dependencies {
+    add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+    add("kspIosX64", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
 }
 
+
+room {
+    schemaDirectory("$projectDir/schemas")
+}

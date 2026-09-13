@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.pizzza.pizzzaDrive.R
+import com.pizzza.pizzzaDrive.ui.AppViewModel
 import com.valu.uitaycompose.swipe.UiTayGif
 import com.valu.uitaycompose.utils.tay_red_600
 import com.valu.uitaycompose.utils.textGabbiB28
@@ -43,7 +44,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SplashScreen(
-    onFinished: () -> Unit
+    viewModel: AppViewModel,
+    onFinished: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -93,7 +95,12 @@ fun SplashScreen(
                 )
             )
             delay(3000.milliseconds)
-            onFinished()
+            viewModel.syncProducts(
+                onComplete = { success ->
+                    onFinished(success)
+
+                }
+            )
         }
     }
 

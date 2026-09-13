@@ -3,29 +3,29 @@ package com.pizzza.pizzzaDrive.ui
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.pizzza.pizzzaDrive.DispatcherProvider
 import com.pizzza.pizzzaDrive.model.ParentOrderModel
 import com.pizzza.pizzzaDrive.ui.base.BaseViewModel
+import com.pizzza.pizzzaDrive.ui.base.GlobalUiStateManager
 import com.pizzza.pizzzaDrive.ui.driver.model.DriverUiState
 import com.pizzza.pizzzaDrive.usecases.DataUseCase
 
 class AppViewModel(
     private val dataUseCase: DataUseCase,
-    dispatchers: DispatcherProvider
-) : BaseViewModel(dispatchers) {
+    private val globalUiStateManager: GlobalUiStateManager,
+) : BaseViewModel() {
 
     var uiState by mutableStateOf(DriverUiState())
         private set
 
     fun getGeneralOrderList() {
-        execute {
+        execute(globalUiStateManager = globalUiStateManager) {
             val response = dataUseCase.loadParentOrder()
             updateStateWithOrders(response)
         }
     }
 
     fun refresh() {
-        execute {
+        execute(globalUiStateManager = globalUiStateManager) {
             val response = dataUseCase.loadParentOrder(forceRefresh = true)
             updateStateWithOrders(response)
         }
@@ -72,15 +72,7 @@ class AppViewModel(
         updateStateWithOrders(updatedOrders)
 
         execute(loading = false) {
-            try {
                 dataUseCase.updateOrder(order.copy(state = newState))
-                
-                // Nota: El inicio del TrackingService se gestiona en MainActivity 
-                // observando el cambio de estado en uiState.orders
-            } catch (e: Exception) {
-                uiState = previousState
-                throw e
-            }
         }
     }
 
@@ -104,5 +96,21 @@ class AppViewModel(
 
     fun selectOrder(order: ParentOrderModel?) {
         uiState = uiState.copy(selectedOrder = order)
+    }
+
+
+    fun syncProducts(onComplete: (Boolean) -> Unit = {}) {
+        execute(loading = false) {
+                    val localUser = io { dataUseCase.getUserLocal() }
+                    onComplete(localUser!=null)
+
+        }
+    }
+
+    fun logout(onSuccess: () -> Unit) {
+        execute(globalUiStateManager = globalUiStateManager) {
+            io { dataUseCase.logout() }
+            onSuccess()
+        }
     }
 }

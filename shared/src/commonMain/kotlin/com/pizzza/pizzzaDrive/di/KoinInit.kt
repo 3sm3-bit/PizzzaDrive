@@ -1,5 +1,6 @@
 package com.pizzza.pizzzaDrive.di
 
+import com.pizzza.pizzzaDrive.repository.di.dbModule
 import com.pizzza.pizzzaDrive.repository.di.networkModule
 import com.pizzza.pizzzaDrive.repository.di.repositoryModule
 import com.pizzza.pizzzaDrive.usecases.di.useCasesModule
@@ -13,6 +14,7 @@ fun initKoin(appDeclaration: KoinAppDeclaration = {}) =
             dispatcherModule,
             repositoryModule,
             networkModule,
+            dbModule,
             useCasesModule
         )
     }

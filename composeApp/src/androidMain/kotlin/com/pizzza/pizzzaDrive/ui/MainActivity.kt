@@ -156,9 +156,6 @@ class MainActivity : BaseActivity() {
 
     override fun getViewModel(): BaseViewModel = viewModel
 
-    override fun getViewModels(): List<BaseViewModel> = listOf(
-        viewModel
-    )
 
     override fun onDestroy() {
         webSocketManager.close()

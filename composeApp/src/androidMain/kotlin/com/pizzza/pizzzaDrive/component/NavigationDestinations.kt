@@ -7,3 +7,6 @@ object Splash
 
 @Serializable
 object DriverHome
+
+@Serializable
+object Login

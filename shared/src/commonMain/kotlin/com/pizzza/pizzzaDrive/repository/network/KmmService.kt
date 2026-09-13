@@ -38,4 +38,11 @@ class KmmService(private val client: HttpClient) {
             setBody(request)
         }.body()
     }
+
+    suspend fun login(request: LoginRequest): LoginResponse {
+        return client.post("${BASE_URL}/services/user/login") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
+    }
 }

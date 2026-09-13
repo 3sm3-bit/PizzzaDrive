@@ -1,5 +1,6 @@
 package com.pizzza.pizzzaDrive.component
 
+import android.content.pm.ActivityInfo
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -7,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.pizzza.pizzzaDrive.ui.AppViewModel
 import com.pizzza.pizzzaDrive.ui.splash.SplashScreen
 import com.pizzza.pizzzaDrive.ui.driver.ScreenDriverHome
+import com.pizzza.pizzzaDrive.ui.login.LoginScreen
 
 @Composable
 fun AppNavigation(
@@ -16,10 +18,18 @@ fun AppNavigation(
     NavHost(navController = navController, startDestination = Splash) {
         composable<Splash> {
             SplashScreen(
-                onFinished = {
-                    navController.navigate(DriverHome) {
-                        popUpTo<Splash> { inclusive = true }
+                viewModel = viewModel,
+                onFinished = {value ->
+                    if (value){
+                        navController.navigate(DriverHome) {
+                            popUpTo<Splash> { inclusive = true }
+                        }
+                    }else{
+                        navController.navigate(Login) {
+                            popUpTo<Splash> { inclusive = true }
+                        }
                     }
+
                 }
             )
         }
@@ -29,5 +39,14 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable<Login> {
+            LoginScreen {
+                navController.navigate(DriverHome) {
+                    popUpTo<Splash> { inclusive = true }
+                }
+            }
+        }
+
     }
 }

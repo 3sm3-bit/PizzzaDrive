@@ -145,7 +145,7 @@ fun ScreenDriverHome(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if (uiState.orders.isEmpty() && !viewModel.uiStateBase.loading) {
+                if (uiState.orders.isEmpty()) {
                     EmptyOrdersPlaceholder { viewModel.refresh() }
                 } else {
                     LazyVerticalGrid(
@@ -585,7 +585,7 @@ fun OrderDetailSheet(
                     modifier = Modifier.weight(1f)
                 )
                 
-                if (isDelivery && order.state.trim().uppercase() != "INICIADO" && order.latitude.isNotBlank() && order.longitude.isNotBlank()) {
+                if (isDelivery && order.state.trim().uppercase() != "ENTREGADO" && order.latitude.isNotBlank() && order.longitude.isNotBlank()) {
                     Button(
                         onClick = {
                             openMap(

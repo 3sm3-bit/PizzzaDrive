@@ -1,14 +1,19 @@
 package com.pizzza.pizzzaDrive.repository.network
 
 import com.pizzza.pizzzaDrive.model.ParentOrderModel
+import com.pizzza.pizzzaDrive.repository.db.entity.UserEntity
+import com.pizzza.pizzzaDrive.repository.db.manager.AppDataBase
 import com.pizzza.pizzzaDrive.repository.network.exception.ErrorNetwork
+import com.pizzza.pizzzaDrive.repository.network.model.LoginRequest
+import com.pizzza.pizzzaDrive.repository.network.model.LoginResponse
 import com.pizzza.pizzzaDrive.repository.network.model.loadParentOrder
 import com.pizzza.pizzzaDrive.usecases.network.IDataNetwork
 import com.pizzza.pizzzaDrive.repository.utils.ConnectivityManager
 
 class DataNetwork(
     private val apiService: KmmService,
-    private val connectivityManager: ConnectivityManager
+    private val connectivityManager: ConnectivityManager,
+    private val database: AppDataBase
 ) : IDataNetwork {
 
     override suspend fun updateOrder(data: ParentOrderModel): String = apiCall {
@@ -41,6 +46,20 @@ class DataNetwork(
     }
 
     override suspend fun logout() {
-        println("UI_TAG_DRIVER: DataNetwork: Cerrando sesión (sin persistencia local que limpiar)...")
+        database.userDao().logout()
+    }
+
+    override suspend fun login(data: LoginRequest): LoginResponse = apiCall {
+        if (!connectivityManager.isConnected()) throw ErrorNetwork()
+        apiService.login(data)
+    }
+
+    override suspend fun saveUserLocal(user: UserEntity) {
+        database.userDao().logout()
+        database.userDao().insertUser(user)
+    }
+
+    override suspend fun getUserLocal(): UserEntity? {
+        return database.userDao().getUser()
     }
 }
