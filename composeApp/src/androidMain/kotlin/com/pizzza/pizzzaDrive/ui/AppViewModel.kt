@@ -98,6 +98,9 @@ class AppViewModel(
         uiState = uiState.copy(selectedOrder = order)
     }
 
+    fun resetOrderState() {
+        uiState = DriverUiState()
+    }
 
     fun syncProducts(onComplete: (Boolean) -> Unit = {}) {
         execute(loading = false) {

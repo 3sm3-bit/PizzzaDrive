@@ -36,7 +36,12 @@ fun AppNavigation(
         composable<DriverHome> {
             ScreenDriverHome(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Login) {
+                        popUpTo<DriverHome> { inclusive = true }
+                    }
+                }
             )
         }
 

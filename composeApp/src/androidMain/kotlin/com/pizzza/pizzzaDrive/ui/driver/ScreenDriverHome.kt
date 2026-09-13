@@ -58,11 +58,13 @@ private fun openMap(
 @Composable
 fun ScreenDriverHome(
     viewModel: AppViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val uiState = viewModel.uiState
     var showSheet by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("ENVIADO") }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
@@ -96,6 +98,21 @@ fun ScreenDriverHome(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    IconButton(
+                        onClick = { showLogoutDialog = true },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(Color.White, RoundedCornerShape(10.dp))
+                            .border(1.dp, Color(0xFFDDDFE2), RoundedCornerShape(10.dp))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Cerrar Sesión",
+                            modifier = Modifier.size(20.dp),
+                            tint = tay_red_600
+                        )
+                    }
+
                     Text(
                         text = "Rutas de Entrega",
                         style = textB20,
@@ -176,6 +193,40 @@ fun ScreenDriverHome(
                 OrderDetailSheet(
                     order = uiState.selectedOrder,
                     onDismiss = { viewModel.selectOrder(null) }
+                )
+            }
+
+            if (showLogoutDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLogoutDialog = false },
+                    title = { Text(text = "Cerrar Sesión", style = textB20, color = tay_red_600) },
+                    text = {
+                        Text(
+                            text = "¿Estás seguro de que deseas cerrar sesión?",
+                            style = textM14, color = Color.Gray
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showLogoutDialog = false
+                                viewModel.resetOrderState()
+                                viewModel.logout {
+                                    onLogout()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = tay_red_600)
+                        ) {
+                            Text("Sí, salir", color = Color.White)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showLogoutDialog = false }) {
+                            Text("No", color = Color.Gray)
+                        }
+                    },
+                    containerColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
                 )
             }
         }
