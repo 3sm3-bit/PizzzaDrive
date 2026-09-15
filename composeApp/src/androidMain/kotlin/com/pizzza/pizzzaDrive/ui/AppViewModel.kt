@@ -104,15 +104,24 @@ class AppViewModel(
 
     fun syncProducts(onComplete: (Boolean) -> Unit = {}) {
         execute(loading = false) {
-                    val localUser = io { dataUseCase.getUserLocal() }
-                    onComplete(localUser!=null)
+            val localUser = io { dataUseCase.getUserLocal() }
+            val logged = localUser != null
+            uiState = uiState.copy(isLoggedIn = logged)
+            onComplete(logged)
+        }
+    }
 
+    fun checkSession() {
+        execute(loading = false) {
+            val localUser = io { dataUseCase.getUserLocal() }
+            uiState = uiState.copy(isLoggedIn = localUser != null)
         }
     }
 
     fun logout(onSuccess: () -> Unit) {
         execute(globalUiStateManager = globalUiStateManager) {
             io { dataUseCase.logout() }
+            uiState = uiState.copy(isLoggedIn = false)
             onSuccess()
         }
     }

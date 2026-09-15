@@ -13,6 +13,5 @@ val viewModelModule = module {
     single<ConnectivityManager> { AndroidConnectivityManager(get()) }
     single { GlobalUiStateManager() }
     viewModel { AppViewModel(get(), get()) }
-    viewModel { BaseViewModel() }
     viewModel { AuthViewModel(get(),get()) }
 }

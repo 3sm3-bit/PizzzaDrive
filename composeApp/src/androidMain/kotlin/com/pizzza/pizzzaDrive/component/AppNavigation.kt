@@ -47,6 +47,7 @@ fun AppNavigation(
 
         composable<Login> {
             LoginScreen {
+                viewModel.checkSession()
                 navController.navigate(DriverHome) {
                     popUpTo<Splash> { inclusive = true }
                 }

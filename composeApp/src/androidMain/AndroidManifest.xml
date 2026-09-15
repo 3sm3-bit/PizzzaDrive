@@ -30,10 +30,6 @@
             </intent-filter>
         </activity>
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyA1gylqBLlia0Q9FElkhMcc9HL0xrr8toU" />
-
         <service
             android:name=".service.TrackingService"
             android:enabled="true"

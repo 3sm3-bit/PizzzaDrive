@@ -35,13 +35,15 @@ class WebSocketManager(private val client: HttpClient) {
     val refreshOrders = _refreshOrders.asSharedFlow()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var connectionJob: Job? = null
     private var isRunning = false
 
     fun connect() {
         if (isRunning) return
         isRunning = true
         
-        scope.launch {
+        connectionJob?.cancel()
+        connectionJob = scope.launch {
             while (isActive) {
                 try {
                     val hostUrl = if (BuildConfig.IS_DEBUG) BuildConfig.BASE_URL_SERVICE_DEV else BuildConfig.BASE_URL_SERVICE
@@ -126,6 +128,6 @@ class WebSocketManager(private val client: HttpClient) {
 
     fun close() {
         isRunning = false
-        scope.cancel()
+        connectionJob?.cancel()
     }
 }

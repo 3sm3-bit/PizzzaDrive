@@ -22,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.pizzza.pizzzaDrive.service.TrackingService
 import android.Manifest
+import android.util.Log
 import com.pizzza.pizzzaDrive.model.ParentOrderModel
 import com.pizzza.pizzzaDrive.repository.network.WebSocketManager
 
@@ -72,10 +73,29 @@ class MainActivity : BaseActivity() {
         // 4. Observar cambios en el estado de las órdenes para el TrackingService
         observeTrackingTrigger()
 
-        // 5. Iniciar WebSocket para refresco automático
-        println("UI_TAG_DRIVER: MainActivity: Llamando a webSocketManager.connect()")
+        // 5. Iniciar observación de WebSocket y control de sesión
+        println("UI_TAG_DRIVER: MainActivity: Iniciando observación de socket y sesión")
         observeWebSocket()
-        webSocketManager.connect()
+        observeSessionState()
+    }
+
+    private fun observeSessionState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                snapshotFlow { viewModel.uiState.isLoggedIn }
+                    .distinctUntilChanged()
+                    .collectLatest { isLoggedIn ->
+                        Log.d("UI_TAG_DRIVER", "MainActivity: observeSessionState: isLoggedIn = $isLoggedIn")
+                        if (isLoggedIn) {
+                            Log.d("UI_TAG_DRIVER", "MainActivity: Sesión activa detectada. Conectando WebSocket...")
+                            webSocketManager.connect()
+                        } else {
+                            Log.d("UI_TAG_DRIVER", "MainActivity: Sesión inactiva. Asegurando que WebSocket esté cerrado...")
+                            webSocketManager.close()
+                        }
+                    }
+            }
+        }
     }
 
     private fun observeWebSocket() {
