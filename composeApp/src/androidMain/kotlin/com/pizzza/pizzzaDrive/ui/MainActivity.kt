@@ -82,13 +82,13 @@ class MainActivity : BaseActivity() {
     private fun observeSessionState() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                snapshotFlow { viewModel.uiState.isLoggedIn }
+                snapshotFlow { viewModel.uiState.isLoggedIn to viewModel.uiState.driverId }
                     .distinctUntilChanged()
-                    .collectLatest { isLoggedIn ->
-                        Log.d("UI_TAG_DRIVER", "MainActivity: observeSessionState: isLoggedIn = $isLoggedIn")
-                        if (isLoggedIn) {
-                            Log.d("UI_TAG_DRIVER", "MainActivity: Sesión activa detectada. Conectando WebSocket...")
-                            webSocketManager.connect()
+                    .collectLatest { (isLoggedIn, driverId) ->
+                        Log.d("UI_TAG_DRIVER", "MainActivity: observeSessionState: isLoggedIn = $isLoggedIn, driverId = $driverId")
+                        if (isLoggedIn && driverId.isNotEmpty()) {
+                            Log.d("UI_TAG_DRIVER", "MainActivity: Sesión activa detectada. Conectando WebSocket con ID: $driverId")
+                            webSocketManager.connect(driverId = driverId)
                         } else {
                             Log.d("UI_TAG_DRIVER", "MainActivity: Sesión inactiva. Asegurando que WebSocket esté cerrado...")
                             webSocketManager.close()

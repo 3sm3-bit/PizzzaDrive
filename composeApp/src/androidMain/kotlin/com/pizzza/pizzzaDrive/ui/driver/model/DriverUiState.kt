@@ -16,6 +16,7 @@ data class DriverUiState(
     val selectedFilter: String = "TODOS",
     val notificationsEnabled: Boolean = false,
     val isLoggedIn: Boolean = false,
+    val driverId: String = "",
     val countEnviado: Int = 0,
     val countEntregado: Int = 0
 )

@@ -106,7 +106,9 @@ class AppViewModel(
         execute(loading = false) {
             val localUser = io { dataUseCase.getUserLocal() }
             val logged = localUser != null
-            uiState = uiState.copy(isLoggedIn = logged)
+            val role = localUser?.rol?.uppercase() ?: ""
+            val driverId = if (role == "ADMIN") "0" else localUser?.uid ?: ""
+            uiState = uiState.copy(isLoggedIn = logged, driverId = driverId)
             onComplete(logged)
         }
     }
@@ -114,14 +116,16 @@ class AppViewModel(
     fun checkSession() {
         execute(loading = false) {
             val localUser = io { dataUseCase.getUserLocal() }
-            uiState = uiState.copy(isLoggedIn = localUser != null)
+            val role = localUser?.rol?.uppercase() ?: ""
+            val driverId = if (role == "ADMIN") "0" else localUser?.uid ?: ""
+            uiState = uiState.copy(isLoggedIn = localUser != null, driverId = driverId)
         }
     }
 
     fun logout(onSuccess: () -> Unit) {
         execute(globalUiStateManager = globalUiStateManager) {
             io { dataUseCase.logout() }
-            uiState = uiState.copy(isLoggedIn = false)
+            uiState = uiState.copy(isLoggedIn = false, driverId = "")
             onSuccess()
         }
     }

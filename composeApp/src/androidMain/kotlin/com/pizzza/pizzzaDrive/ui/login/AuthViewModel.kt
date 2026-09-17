@@ -37,7 +37,7 @@ class AuthViewModel(
             val response = io { dataUseCase.login(request) }
             val userValid = response.userValid
             val userRole = userValid.rol?.uppercase() ?: ""
-            if (userRole != "DRIVE" && userRole != "ADMIN") {
+            if (userRole != "DRIVER" && userRole != "ADMIN") {
                 throw UiTayApiException(
                     code = 401,
                     title = "Usuario no autorizado",

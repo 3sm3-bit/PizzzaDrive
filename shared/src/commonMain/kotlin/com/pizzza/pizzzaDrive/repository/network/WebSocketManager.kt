@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
 data class SocketIdentify(
     val type: String = "IDENTIFY",
     val role: String = "DRIVER",
-    val driverId: String = "1"
+    val driverId: String
 )
 
 @Serializable
@@ -38,7 +38,7 @@ class WebSocketManager(private val client: HttpClient) {
     private var connectionJob: Job? = null
     private var isRunning = false
 
-    fun connect() {
+    fun connect(driverId: String) {
         if (isRunning) return
         isRunning = true
         
@@ -76,7 +76,7 @@ class WebSocketManager(private val client: HttpClient) {
                         println("UI_TAG_DRIVER: WebSocket: Conexión establecida con el servidor.")
                         
                         // 1. Enviar IDENTIFY
-                        val identify = SocketIdentify()
+                        val identify = SocketIdentify(driverId = driverId)
                         val identifyJson = jsonWorker.encodeToString(identify)
                         try {
                             send(Frame.Text(identifyJson))
